@@ -4,7 +4,7 @@ Run RL $\times$ LM experiments using minimal monkey patches for [verl](https://g
 
 ## Usage
 
-local install this repo as a package
+First follow instructions in verl to install the main repo, then locally install this repo.
 ```bash
 git clone https://github.com/koalazf99/nanoverl.git nanoverl
 cd nanoverl
@@ -16,9 +16,9 @@ pip install -e .
 All scripts for RL experiments are in `nanoverl/example/`. For example, we can run the following script to train [deepscaler](https://huggingface.co/datasets/agentica-org/DeepScaleR-Preview-Dataset) dataset using [R1-Distill-Qwen-1.5B](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B) with GRPO algorithm:
 
 ```bash
-# data prepare
-
-
+cd examples/deepscaler
+python prepare_dataset.py
+bash train_grpo_r1_distill_1b_8k.bash
 ```
 
 
