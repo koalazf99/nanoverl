@@ -15,14 +15,17 @@
 Note that we don't combine the main with ray_trainer as ray_trainer is used by other main.
 """
 from verl.trainer.ppo.ray_trainer import RayPPOTrainer
+from nanoverl.rewards.deepscaler_rule_reward import deepscaler_reward_fn
 
 import ray
 import hydra
 
 
-@hydra.main(config_path='config', config_name='ppo_trainer', version_base=None)
+@hydra.main(config_path='nanoverl/config', config_name='ppo_trainer', version_base=None)
 def main(config):
-    run_ppo(config)
+    #FIXME skip yaml since it is too complicated, force to use nanoverl rewards for now
+    compute_score = deepscaler_reward_fn if True else None
+    run_ppo(config, compute_score)
 
 
 def run_ppo(config, compute_score=None):
