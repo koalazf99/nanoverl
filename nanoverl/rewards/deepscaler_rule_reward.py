@@ -6,10 +6,11 @@ validate answers when necessary.
 """
 from typing import List, Union
 
-from nanoverl.rewards import RewardConfig, RewardFn, RewardInput, RewardOutput, RewardType
-from math_verify import parse, verify, LatexExtractionConfig
 from latex2sympy2_extended import NormalizationConfig
+from math_verify import LatexExtractionConfig, parse, verify
 
+from nanoverl.rewards import (RewardConfig, RewardFn, RewardInput,
+                              RewardOutput, RewardType)
 
 THOUGHT_DELIMITER_START = "<think>"
 THOUGHT_DELIMITER_END = "</think>"
@@ -39,7 +40,7 @@ class RewardMathFn(RewardFn):
         # FIXME @fan use math_verify to parse the model solution for now
         # we use open-r1 acc_reward for this:
         # https://github.com/huggingface/open-r1/blob/main/src/open_r1/rewards.py
-        model_answer = parse(
+        model_answers = parse(
             model_solution,
             extraction_config=[
                 LatexExtractionConfig(
@@ -58,7 +59,7 @@ class RewardMathFn(RewardFn):
             ],
             extraction_mode="first_match",
         )
-        if model_answer is None:
+        if model_answers is None or len(model_answers) == 0:
             return RewardOutput(reward=self.config.format_error_reward, is_correct=False)
 
         # Process the ground truth(s)
@@ -75,20 +76,38 @@ class RewardMathFn(RewardFn):
         for truth in ground_truths:
             truth = str(truth)
             if "\\boxed" in truth:
-                processed_truth = parse(truth)
+                processed_truth = parse(
+                    truth,
+                    extraction_config=[
+                        LatexExtractionConfig(
+                            normalization_config=NormalizationConfig(
+                                nits=False,
+                                malformed_operators=False,
+                                basic_latex=True,
+                                equations=True,
+                                boxed="all",
+                                units=True,
+                            ),
+                            # Ensures that boxed is tried first
+                            boxed_match_priority=True,
+                            try_extract_without_anchor=False,
+                        )
+                    ],
+                    extraction_mode="first_match",
+                )
                 if processed_truth is not None:
-                    processed_ground_truths.append(processed_truth)
+                    processed_ground_truths.extend(processed_truth)
             else:
-                processed_ground_truths.append(truth)
+                truth = parse(truth)
+                processed_ground_truths.extend(truth)
         
         if not processed_ground_truths:
             return RewardOutput(reward=self.config.unk_error_reward, is_correct=False)
 
         # Check against all possible correct answers
-        for ground_truth in processed_ground_truths:
-            is_correct = verify(model_answer, ground_truth)
-            if is_correct:
-                return RewardOutput(reward=self.config.correct_reward, is_correct=True)
+        is_correct = verify(model_answers, processed_ground_truths)
+        if is_correct:
+            return RewardOutput(reward=self.config.correct_reward, is_correct=True)
 
         # If latex heuristics fail and ORM is enabled, use LLM as ORM to evaluate correctness
         if self.config.use_math_orm:

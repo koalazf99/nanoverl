@@ -7,6 +7,7 @@ to evaluate model responses for various problem types, including math and coding
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 @dataclass
 class RewardConfig:
     # Use LLM as ORM to evaluate correctness.

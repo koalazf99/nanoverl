@@ -7,12 +7,12 @@ instruction prompts, and saves the processed data as parquet files.
 
 import argparse
 import os
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
+from datasets import load_dataset
 from verl.utils.hdfs_io import copy, makedirs
 from verl.utils.reward_score.math import last_boxed_only_string, remove_boxed
-from datasets import load_dataset
 
 
 def extract_solution(solution_str: str) -> str:
