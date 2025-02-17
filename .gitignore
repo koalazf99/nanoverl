@@ -174,3 +174,4 @@ dev/
 data/
 **/outputs/
 **/wandb/
+checkpoints/

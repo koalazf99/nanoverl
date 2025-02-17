@@ -21,6 +21,16 @@ python prepare_dataset.py
 bash train_grpo_r1_distill_1b_8k.bash
 ```
 
+The evaluation script is also a "nano" version thanks to [sglang](https://github.com/sgl-project/sglang). We use sglang-router to serve multiple backends.
+```bash
+python -m sglang_router.launch_server \
+    --model-path deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+    --port 30000 --dp-size 8
+python reasoning_eval.py \
+    --data-path nanoverl/aime \
+    --parallel 256 \
+    --num-tries 16
+```
 
 
 ## Local Installable Package Configuration
